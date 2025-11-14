@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temas 7, 8 y 9</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+        }
+        
+        /* Encabezado */
+        header {
+            padding: 25px 30px;
+            background-color: #007bff;
+            color: white;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        
+        /* Marcador (Scoreboard) - General */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .score-item {
+            text-align: center;
+        }
+        .score-item span {
+            display: block;
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .score-item {
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* Colores para el marcador final */
+        #score-aciertos { color: #28a745; }
+        #score-errores { color: #dc3545; }
+        #score-quedan { color: #6c757d; }
+        /* Colores para el marcador en vivo */
+        #score-aciertos-live { color: #28a745; }
+        #score-errores-live { color: #dc3545; }
+        
+        /* Formulario del Test */
+        #quizForm {
+            padding: 30px;
+            /* Damos una altura mínima para que no "salte" la página */
+            min-height: 250px; 
+        }
+        .question-block {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        /* En el modo de una sola pregunta, no queremos bordes inferiores */
+        .single-question-mode .question-block {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .question-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .question-block p {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        /* Opciones de respuesta */
+        .question-block label {
+            display: block;
+            background-color: #fdfdfd;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .question-block label:hover {
+            background-color: #f0f8ff;
+            border-color: #007bff;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+        }
+        /* Deshabilitar clics en preguntas ya respondidas */
+        .question-block.answered label {
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        .question-block input[type="radio"] {
+            display: none; /* Ocultamos el radio button original */
+        }
+        /* Estilo para la opción seleccionada */
+        .question-block input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #0056b3;
+        }
+        
+        /* Estilos para respuestas post-calificación */
+        .question-block label.correct {
+            background-color: #d4edda !important;
+            border-color: #c3e6cb !important;
+            color: #155724;
+            font-weight: bold;
+        }
+        .question-block label.correct:hover {
+            background-color: #c3e6cb !important;
+        }
+        .question-block label.incorrect {
+            background-color: #f8d7da !important;
+            border-color: #f5c6cb !important;
+            color: #721c24;
+            font-weight: bold;
+        }
+        .question-block label.incorrect:hover {
+            background-color: #f5c6cb !important;
+        }
+        /* Estilo para la respuesta incorrecta seleccionada por el usuario */
+        .question-block label.user-incorrect {
+            text-decoration: line-through;
+            opacity: 0.8;
+        }
+        /* Estilos para anular el color del texto del span en respuestas */
+        .question-block label.correct span,
+        .question-block label.incorrect span {
+            font-weight: 700;
+            color: inherit; /* Hereda el color de la etiqueta (.correct o .incorrect) */
+        }
+
+        /* Navegación */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px 30px 30px;
+        }
+        .nav-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        #prevBtn {
+            background-color: #6c757d;
+            color: white;
+        }
+        #prevBtn:hover {
+            background-color: #5a6268;
+        }
+        #prevBtn:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        #nextBtn {
+            background-color: #007bff;
+            color: white;
+        }
+        #nextBtn:hover {
+            background-color: #0056b3;
+        }
+        #nextBtn.submit-style {
+            background-color: #28a745;
+        }
+        #nextBtn.submit-style:hover {
+            background-color: #218838;
+        }
+
+        /* Ocultar elementos */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Temas 7, 8 y 9</h1>
+        </header>
+
+        <!-- Marcador de Progreso (durante el test) -->
+        <div id="quiz-progress" class="scoreboard">
+            <div class="score-item">
+                Progreso
+                <span id="progress-text">1 / 44</span>
+            </div>
+            <div class="score-item">
+                Aciertos
+                <span id="score-aciertos-live">0</span>
+            </div>
+            <div class="score-item">
+                Errores
+                <span id="score-errores-live">0</span>
+            </div>
+        </div>
+
+        <!-- Marcador de Resultados (al final) -->
+        <div id="results-board" class="scoreboard hidden">
+            <div class="score-item">
+                Aciertos
+                <span id="score-aciertos">0</span>
+            </div>
+            <div class="score-item">
+                Errores
+                <span id="score-errores">0</span>
+            </div>
+            <div class="score-item">
+                Sin contestar
+                <span id="score-quedan">44</span>
+            </div>
+        </div>
+
+        <!-- Contenedor de la pregunta activa o de los resultados -->
+        <form id="quizForm" class="single-question-mode">
+            <!-- Las preguntas se cargarán aquí dinámicamente -->
+        </form>
+
+        <!-- Botones de Navegación -->
+        <div class="navigation" id="nav-buttons">
+            <button id="prevBtn" class="nav-button">Anterior</button>
+            <button id="nextBtn" class="nav-button">Siguiente</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS DEL TEST ---
+        // Extraído del PDF "7, 8, 9.pdf"
+        const quizData = [
+            {
+                question: "1. ¿Qué característica distingue al modelo de \"Asignación Funcional\" en la atención hospitalaria?",
+                options: { a: "Un enfoque centrado en la persona", c: "La división de tareas según la especialización y la cualificación del personal", d: "La planificación de cuidados por equipos multidisciplinarios", e: "La responsabilidad integral de una sola enfermera por un paciente" },
+                answer: "c"
+            },
+            {
+                question: "2. ¿Qué aspecto es uno de los mayores problemas del sistema de \"Asignación Funcional\"?",
+                options: { b: "La falta de un diagnóstico clínico claro", c: "La falta de delegación", d: "La excesiva autonomía de las enfermeras", e: "La fragmentación del cuidado y la insatisfacción del paciente" },
+                answer: "e"
+            },
+            {
+                question: "3. ¿Cuál es la principal característica del modelo de \"Asignación por Equipo\"?",
+                options: { a: "La asignación de tareas sin un plan de cuidados", b: "La supervisión jerárquica de cada enfermera por una enfermera auxiliar", d: "Un equipo liderado por una jefa de equipo con enfermeras de diferentes niveles", e: "La asignación de un solo responsable por paciente" },
+                answer: "d"
+            },
+            {
+                question: "4. ¿En qué aspecto se diferencia el modelo de \"Asignación Primaria\" de otros sistemas?",
+                options: { a: "No asigna una enfermera responsable por paciente", b: "Descentraliza la responsabilidad y la toma de decisiones", d: "No requiere planificación escrita de cuidados", e: "Hace énfasis en la división de tareas por especialización" },
+                answer: "b"
+            },
+            {
+                question: "5. En relación con la supervisión, ¿qué dificultad se presenta en el modelo de \"Asignación por Equipo\"?",
+                options: { a: "Requiere menos personal cualificado", b: "Dificultad para coordinar al personal auxiliar", c: "No promueve el desarrollo profesional", e: "Fomenta la rutina y la monotonía" },
+                answer: "b"
+            },
+            {
+                question: "6. ¿Qué modelo de asignación es MÁS adecuado para la \"Gestión de Casos\"?",
+                options: { a: "Asignación Funcional", b: "Asignación por Equipo", d: "Asignación Primaria", e: "Todos los modelos por igual" },
+                answer: "d"
+            },
+            {
+                question: "7. ¿Qué es la \"Gestión de Casos\" (Case Management)?",
+                options: { a: "Un sistema de colaboración para gestionar servicios para un paciente", b: "Un modelo de asignación de tareas diarias", c: "Un sistema de financiación hospitalaria", e: "Un método de supervisión de personal" },
+                answer: "a"
+            },
+            {
+                question: "8. ¿Cuál es un requisito para que la \"Gestión de Casos\" sea efectiva?",
+                options: { a: "Una estructura organizativa rígida", b: "La participación de un equipo multidisciplinar", c: "La exclusión de la familia del plan de cuidados", e: "La centralización de todas las decisiones" },
+                answer: "b"
+            },
+            {
+                question: "9. ¿Qué es el \"Contrato de Gestión\"?",
+                options: { a: "Un acuerdo entre el SAS y el Ministerio de Sanidad", b: "Un acuerdo entre un centro y sus profesionales para fijar objetivos", c: "Un contrato laboral estándar", e: "Un acuerdo de compra con proveedores" },
+                answer: "b"
+            },
+            {
+                question: "10. ¿Cuál es un objetivo clave del \"Contrato de Gestión\"?",
+                options: { a: "Aumentar la burocracia administrativa", c: "Reducir la autonomía de los profesionales", d: "Mejorar la calidad y la eficiencia de los servicios", e: "Eliminar la participación del personal" },
+                answer: "d"
+            },
+            {
+                question: "11. ¿Qué característica define la \"Dirección por Objetivos\"?",
+                options: { a: "Imposición de metas sin consulta", b: "Ausencia de evaluación de resultados", c: "Fijación de objetivos solo a corto plazo", e: "Participación del personal en la fijación de objetivos y autoevaluación" },
+                answer: "e"
+            },
+            {
+                question: "12. ¿Qué elemento NO es típico de un \"Contrato de Gestión\"?",
+                options: { a: "Objetivos asistenciales (ej. número de consultas)", b: "Objetivos de calidad (ej. satisfacción)", c: "Sanciones penales por incumplimiento", d: "Incentivos ligados al cumplimiento" },
+                answer: "c"
+            },
+            {
+                question: "13. ¿Qué es la \"Calidad Total\" (TQM)?",
+                options: { a: "Un sistema de inspección final de productos", c: "Un enfoque en la satisfacción del cliente y la mejora continua", d: "Un modelo basado en la jerarquía estricta", e: "Un programa exclusivo de reducción de costes" },
+                answer: "c"
+            },
+            {
+                question: "14. ¿Qué es un \"Círculo de Calidad\"?",
+                options: { a: "Un grupo de directivos que fija la política de calidad", b: "Un grupo de empleados voluntarios que identifica y soluciona problemas", c: "Un comité de auditoría externa", d: "Un sistema de recepción de quejas de pacientes" },
+                answer: "b"
+            },
+            {
+                question: "15. ¿Qué se entiende por \"Eficacia\" en gestión sanitaria?",
+                options: { a: "La relación entre el coste y el resultado obtenido", b: "El grado de consecución de los objetivos programados", c: "El nivel de satisfacción del personal sanitario", d: "El número de procedimientos realizados" },
+                answer: "b"
+            },
+            {
+                question: "16. ¿Qué se entiende por \"Eficiencia\" en gestión sanitaria?",
+                options: { a: "La relación entre los recursos utilizados y los resultados obtenidos", b: "El nivel de satisfacción del paciente", c: "El grado de consecución de objetivos (eficacia)", e: "La calidad técnica de la prestación" },
+                answer: "a"
+            },
+            {
+                question: "17. ¿Qué mide la \"Efectividad\" en gestión sanitaria?",
+                options: { a: "Los resultados obtenidos en condiciones ideales (ensayo clínico)", b: "El coste por paciente atendido", c: "Los resultados obtenidos en la práctica habitual (condiciones reales)", e: "La satisfacción del usuario con el trato" },
+                answer: "c"
+            },
+            {
+                question: "18. ¿Cuál es el primer paso en un programa de \"Calidad Total\"?",
+                options: { a: "Crear círculos de calidad", b: "Definir la misión y visión de la organización", c: "Implementar incentivos económicos", e: "El compromiso de la alta dirección con la calidad" },
+                answer: "e"
+            },
+            {
+                question: "19. ¿Qué es un \"Indicador\" en la evaluación de la calidad?",
+                options: { a: "Una medida cuantitativa u observable que evalúa un aspecto de la calidad", b: "Una opinión subjetiva de un experto", c: "Un objetivo a largo plazo de la organización", e: "Un estándar de cumplimiento obligatorio" },
+                answer: "a"
+            },
+            {
+                question: "20. ¿Qué es un \"Estándar\" en la evaluación de la calidad?",
+                options: { a: "El valor deseado (óptimo o mínimo aceptable) para un indicador", b: "Una medida de la eficiencia del sistema", c: "Una opinión general de los pacientes", e: "Un indicador de estructura física" },
+                answer: "a"
+            },
+            {
+                question: "21. Un indicador como \"Tasa de mortalidad postoperatoria\" es un indicador de:",
+                options: { a: "Estructura", b: "Proceso", c: "Resultado", e: "Eficiencia" },
+                answer: "c"
+            },
+            {
+                question: "22. Un indicador como \"Número de enfermeras por cama\" es un indicador de:",
+                options: { a: "Estructura", b: "Proceso", c: "Resultado", e: "Efectividad" },
+                answer: "a"
+            },
+            {
+                question: "23. Un indicador como \"Tiempo medio de espera en urgencias\" es un indicador de:",
+                options: { a: "Estructura", b: "Proceso", c: "Resultado", e: "Eficacia" },
+                answer: "b"
+            },
+            {
+                question: "24. ¿Qué es la \"Motivación\" según la teoría de Maslow?",
+                options: { a: "Un factor puramente económico", b: "Una jerarquía de necesidades que impulsa el comportamiento", c: "Un rasgo innato que no se puede cambiar", e: "Un resultado de la presión de los supervisores" },
+                answer: "b"
+            },
+            {
+                question: "25. Según Maslow, ¿cuál es la necesidad de más alto nivel?",
+                options: { a: "Fisiológicas (comida, agua)", b: "Seguridad (empleo, salud)", c: "Afiliación (amistad, amor)", e: "Autorrealización (desarrollo potencial)" },
+                answer: "e"
+            },
+            {
+                question: "26. En la teoría de Herzberg, ¿cuál es un \"factor de higiene\" (extrínseco)?",
+                options: { a: "El reconocimiento por el trabajo", b: "El salario y las condiciones de trabajo", c: "La responsabilidad asignada", e: "El crecimiento personal" },
+                answer: "b"
+            },
+            {
+                question: "27. En la teoría de Herzberg, ¿cuál es un \"factor de motivación\" (intrínseco)?",
+                options: { a: "El salario", b: "La seguridad laboral", c: "El reconocimiento y el logro", e: "La relación con los supervisores" },
+                answer: "c"
+            },
+            {
+                question: "28. ¿Qué postula la \"Teoría X\" de McGregor?",
+                options: { a: "A la gente le gusta trabajar por naturaleza", b: "La gente es creativa y busca responsabilidad", c: "La gente evita el trabajo y la responsabilidad, necesita ser controlada", e: "La gente busca la autorrealización" },
+                answer: "c"
+            },
+            {
+                question: "29. ¿Qué postula la \"Teoría Y\" de McGregor?",
+                options: { a: "El trabajo es natural como el juego y la gente busca responsabilidad", b: "La gente prefiere ser dirigida para evitar problemas", c: "La gente tiene poca ambición", e: "La gente es inherentemente perezosa" },
+                answer: "a"
+            },
+            {
+                question: "30. ¿Qué es el \"Liderazgo\"?",
+                options: { a: "La capacidad de imponer autoridad mediante el castigo", b: "El proceso de influir en un grupo para alcanzar objetivos", c: "Un puesto jerárquico formal en el organigrama", e: "La gestión de recursos materiales" },
+                answer: "b"
+            },
+            {
+                question: "31. ¿Qué caracteriza a un \"Líder Autocrático\"?",
+                options: { a: "Delega la toma de decisiones en el grupo", b: "Toma decisiones unilateralmente y centraliza el poder", c: "Fomenta la participación y el debate", e: "Evita tomar decisiones (Laissez-faire)" },
+                answer: "b"
+            },
+            {
+                question: "32. ¿Qué caracteriza a un \"Líder Democrático\" (o participativo)?",
+                options: { a: "Centraliza todo el poder", b: "Impone sus ideas sin consultar", c: "Involucra al grupo en la toma de decisiones", e: "No ofrece guía ni dirección" },
+                answer: "c"
+            },
+            {
+                question: "33. ¿Qué es la \"Comunicación\" en una organización?",
+                options: { a: "Un proceso unidireccional del jefe al empleado", b: "Solo la transmisión de órdenes y mandatos", c: "Un proceso de intercambio de información y significado entre personas", e: "Algo exclusivo de los departamentos de marketing" },
+                answer: "c"
+            },
+            {
+                question: "34. ¿Qué es una \"barrera\" en la comunicación?",
+                options: { a: "Cualquier factor que distorsiona, interfiere o impide la comunicación", b: "El uso de canales formales de comunicación", c: "La retroalimentación (feedback)", e: "La claridad del mensaje" },
+                answer: "a"
+            },
+            {
+                question: "35. ¿Qué es la \"Comunicación Descendente\"?",
+                options: { a: "Fluye de subordinados a superiores (ej. informes)", b: "Fluye de superiores a subordinados (ej. órdenes, políticas)", c: "Ocurre entre compañeros del mismo nivel", e: "Ocurre fuera de la organización" },
+                answer: "b"
+            },
+            {
+                question: "36. ¿Qué es la \"Comunicación Ascendente\"?",
+                options: { a: "Fluye de subordinados a superiores (ej. sugerencias, quejas)", b: "Fluye de superiores a subordinados (ej. órdenes)", c: "Ocurre entre pares del mismo nivel", e: "Es siempre informal y se basa en rumores" },
+                answer: "a"
+            },
+            {
+                question: "37. ¿Qué es la \"Comunicación Horizontal\"?",
+                options: { a: "Fluye de subordinados a superiores", b: "Fluye de superiores a subordinados", c: "Ocurre entre miembros del mismo nivel jerárquico", e: "Es la menos común en las organizaciones" },
+                answer: "c"
+            },
+            {
+                question: "38. ¿Qué es el \"Grid Gerencial\" (Blake y Mouton)?",
+                options: { a: "Un modelo que mide el interés por la producción y por las personas", b: "Una teoría sobre la jerarquía de necesidades", c: "Un sistema de castigos y recompensas", e: "Un organigrama estándar" },
+                answer: "a"
+            },
+            {
+                question: "39. ¿Cuál es el objetivo de la \"Dirección por Valores\"?",
+                options: { a: "Centrarse solo en la organización jerárquica", c: "Desarrollar un compromiso colectivo y rediseñar la cultura organizacional", d: "Minimizar la complejidad de las tareas" },
+                answer: "c"
+            },
+            {
+                question: "40. Líder Laissez-faire:",
+                options: { a: "Da poca libertad a los subordinados", c: "Los subordinados deciden y el líder facilita recursos", d: "El líder toma todas las decisiones", e: "El líder impone sus ideas sin consultar" },
+                answer: "c"
+            },
+            {
+                question: "41. Según el Grid Gerencial, un líder (9.9) ideal está:",
+                options: { a: "(1.1) Indiferente", b: "(1.9) Complaciente", c: "(9.9) Ideal - Alto interés en Tarea y Persona", d: "(9.1) Dictatorial" },
+                answer: "c"
+            },
+            {
+                question: "42. En las teorías de la situación, el comportamiento del líder depende de:",
+                options: { b: "La relación del líder con la alta gerencia", c: "El nivel educativo del líder", d: "La personalidad exclusivamente", e: "Las relaciones entre líder-grupo y otros factores de la situación" },
+                answer: "e"
+            },
+            {
+                question: "43. Liderazgo participativo:",
+                options: { a: "El líder decide sin consultar", b: "Impone su decisión sin debate", c: "Los subordinados opinan, pero el líder toma la decisión final", d: "El grupo decide todo sin la intervención del líder" },
+                answer: "c"
+            },
+            {
+                question: "44. Elementos clave del liderazgo situacional de Fiedler:",
+                options: { a: "Relaciones líder-miembro, estructura de la tarea, poder del puesto", b: "Personalidad, relaciones, objetivos", c: "Edad, número de seguidores, estructura", d: "Capacidades técnicas, confianza, economía" },
+                answer: "a"
+            }
+        ];
+
+
+        // --- ESTADO DEL TEST ---
+        const totalQuestions = quizData.length;
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(totalQuestions).fill(null);
+        let scoreAciertos = 0;
+        let scoreErrores = 0;
+
+        // --- REFERENCIAS AL DOM ---
+        const quizForm = document.getElementById('quizForm');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const navButtons = document.getElementById('nav-buttons');
+        
+        // Marcadores
+        const quizProgress = document.getElementById('quiz-progress');
+        const progressText = document.getElementById('progress-text');
+        const scoreAciertosLiveEl = document.getElementById('score-aciertos-live');
+        const scoreErroresLiveEl = document.getElementById('score-errores-live');
+        
+        const resultsBoard = document.getElementById('results-board');
+        const scoreAciertosEl = document.getElementById('score-aciertos');
+        const scoreErroresEl = document.getElementById('score-errores');
+        const scoreQedanEl = document.getElementById('score-quedan');
+
+        // --- LÓGICA DEL TEST ---
+
+        /**
+         * Muestra la pregunta actual en el DOM.
+         * @param {number} index - El índice de la pregunta a mostrar.
+         */
+        function showQuestion(index) {
+            // Actualizar el índice
+            currentQuestionIndex = index;
+            const currentQuestion = quizData[index];
+            
+            let questionText = currentQuestion.question;
+            const userAnswer = userAnswers[index];
+            const correctAnswer = currentQuestion.answer;
+
+            // Generar HTML para las opciones
+            let optionsHtml = [];
+            for (const [key, value] of Object.entries(currentQuestion.options)) {
+                // 'disabled' para forzar el clic en la etiqueta
+                optionsHtml.push(
+                    `<label>
+                        <input type="radio" name="q_current" value="${key}" disabled>
+                        <span>${key}. ${value}</span>
+                    </label>`
+                );
+            }
+
+            // Actualizar el HTML del formulario
+            quizForm.innerHTML = `
+                <div class="question-block">
+                    <p>${questionText}</p>
+                    ${optionsHtml.join('')}
+                </div>
+            `;
+            
+            const questionBlock = quizForm.querySelector('.question-block');
+            const labels = quizForm.querySelectorAll('label');
+
+            if (userAnswer !== null) {
+                // La pregunta ya ha sido respondida (al usar "Anterior")
+                // Simplemente mostramos el estado guardado
+                questionBlock.classList.add('answered'); // Deshabilita clics vía CSS
+                const userLabel = quizForm.querySelector(`label > input[value="${userAnswer}"]`).parentElement;
+                userLabel.querySelector('input').checked = true; // Marcar el radio
+
+                if (userAnswer === correctAnswer) {
+                    userLabel.classList.add('correct');
+                } else {
+                    userLabel.classList.add('incorrect');
+                    const correctLabel = quizForm.querySelector(`label > input[value="${correctAnswer}"]`).parentElement;
+                    correctLabel.classList.add('correct');
+                }
+            } else {
+                // Pregunta nueva, añadir listeners
+                labels.forEach(label => {
+                    label.addEventListener('click', handleAnswerClick);
+                });
+            }
+            
+            // Actualizar el estado de los botones
+            prevBtn.disabled = (index === 0);
+            
+            if (index === totalQuestions - 1) {
+                nextBtn.textContent = 'Ver Resultados';
+                nextBtn.classList.add('submit-style');
+            } else {
+                nextBtn.textContent = 'Siguiente';
+                nextBtn.classList.remove('submit-style');
+            }
+            
+            // Actualizar contadores
+            updateScoreboard();
+        }
+
+        /**
+         * Maneja el clic en una respuesta, la evalúa y actualiza la UI.
+         */
+        function handleAnswerClick(event) {
+            const clickedLabel = event.currentTarget;
+            const questionBlock = clickedLabel.closest('.question-block');
+
+            // Prevenir dobles clics
+            if (questionBlock.classList.contains('answered')) return;
+            
+            // Bloquear más clics en esta pregunta
+            questionBlock.classList.add('answered');
+
+            const selectedInput = clickedLabel.querySelector('input');
+            selectedInput.checked = true; // Marcar el radio button
+            
+            const userAnswer = selectedInput.value;
+            const correctAnswer = quizData[currentQuestionIndex].answer;
+
+            // Guardar respuesta
+            userAnswers[currentQuestionIndex] = userAnswer;
+
+            // Evaluar y aplicar estilos
+            if (userAnswer === correctAnswer) {
+                clickedLabel.classList.add('correct');
+                scoreAciertos++;
+            } else {
+                clickedLabel.classList.add('incorrect');
+                scoreErrores++;
+                // Mostrar la respuesta correcta
+                const correctLabel = quizForm.querySelector(`label > input[value="${correctAnswer}"]`).parentElement;
+                correctLabel.classList.add('correct');
+            }
+            
+            // Actualizar el marcador superior
+            updateScoreboard();
+        }
+        
+        /**
+         * Actualiza los contadores de progreso, aciertos y errores.
+         */
+        function updateScoreboard() {
+            progressText.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+            scoreAciertosLiveEl.textContent = scoreAciertos;
+            scoreErroresLiveEl.textContent = scoreErrores;
+        }
+
+        /**
+         * Mueve a la siguiente pregunta o califica el test.
+         */
+        function handleNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                // Ir a la siguiente pregunta
+                showQuestion(currentQuestionIndex + 1);
+            } else {
+                // Es la última pregunta, calificar
+                gradeQuiz();
+            }
+        }
+
+        /**
+         * Mueve a la pregunta anterior.
+         */
+        function handlePrev() {
+            if (currentQuestionIndex > 0) {
+                showQuestion(currentQuestionIndex - 1);
+            }
+        }
+
+        /**
+         * Califica el test y muestra los resultados.
+         */
+        function gradeQuiz() {
+            let aciertos_final = 0;
+            let errores_final = 0;
+            let sinContestar = 0;
+
+            let resultsHtml = [];
+
+            // Calcular puntuaciones y generar HTML de resultados
+            quizData.forEach((question, index) => {
+                const correctAnswer = question.answer;
+                const userAnswer = userAnswers[index];
+                
+                let questionText = question.question;
+
+                let optionsHtml = [];
+                
+                for (const [key, value] of Object.entries(question.options)) {
+                    let labelClass = '';
+                    
+                    if (key === correctAnswer) {
+                        labelClass = 'correct';
+                    }
+                    
+                    if (userAnswer === key && userAnswer !== correctAnswer) {
+                        labelClass = 'incorrect user-incorrect';
+                    } else if (userAnswer === key && userAnswer === correctAnswer) {
+                        // 'correct' ya está asignada
+                    }
+
+                    optionsHtml.push(
+                        `<label class="${labelClass}">
+                            <!-- Los inputs están deshabilitados en los resultados -->
+                            <input type="radio" name="q_${index}" value="${key}" ${userAnswer === key ? 'checked' : ''} disabled>
+                            <span>${key}. ${value}</span>
+                        </label>`
+                    );
+                }
+                
+                resultsHtml.push(
+                    `<div class="question-block">
+                        <p>${questionText}</p>
+                        ${optionsHtml.join('')}
+                    </div>`
+                );
+
+                // Contar puntos
+                if (userAnswer === null) {
+                    sinContestar++;
+                } else if (userAnswer === correctAnswer) {
+                    aciertos_final++;
+                } else {
+                    errores_final++;
+                }
+            });
+
+            // --- Actualizar la UI para mostrar resultados ---
+
+            // 1. Ocultar progreso y navegación
+            quizProgress.classList.add('hidden');
+            navButtons.classList.add('hidden');
+            
+            // 2. Mostrar marcador de resultados
+            resultsBoard.classList.remove('hidden');
+            scoreAciertosEl.textContent = aciertos_final;
+            scoreErroresEl.textContent = errores_final;
+            scoreQedanEl.textContent = sinContestar;
+            
+            // 3. Quitar el modo "single-question" y mostrar todos los resultados
+            quizForm.classList.remove('single-question-mode');
+            quizForm.innerHTML = resultsHtml.join('');
+            
+            // 4. Subir al inicio de la página
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Actualizar contadores al total correcto
+            progressText.textContent = `1 / ${totalQuestions}`;
+            scoreQedanEl.textContent = totalQuestions;
+
+            // Añadir Listeners a los botones
+            nextBtn.addEventListener('click', handleNext);
+            prevBtn.addEventListener('click', handlePrev);
+
+            // Mostrar la primera pregunta
+            showQuestion(0);
+        });
+
+    </script>
+
+</body>
+</html>
